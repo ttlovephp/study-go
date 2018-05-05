@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"study/lib"
+	"time"
 )
 
 func main() {
@@ -65,6 +66,60 @@ func main() {
 
 	fmt.Println("\nt---m2", t.Name)
 
+	go goFunc()
+
+	chanStr1 := make(chan string)
+	chanStr2 := make(chan string)
+
+	go func(chanStr chan string) {
+		var i int
+		for {
+			if i <= 5 {
+				chanStr <- "chanStr1-----test1"
+			}
+			time.Sleep(time.Second)
+			i++
+		}
+	}(chanStr1)
+
+	go func(chanStr chan string) {
+		var i int
+		for {
+			if i <= 5 {
+				chanStr <- "chanStr2-----test2"
+			}
+			time.Sleep(time.Second)
+			i++
+		}
+	}(chanStr2)
+
+	// go func(chanStr chan string) {
+	// 	for {
+	// 		msg := <-chanStr
+	// 		fmt.Println("out ----- chan :", msg)
+	// 	}
+	// }(chanStr1)
+	go func() {
+		for {
+			select {
+			case msg1 := <-chanStr1:
+				fmt.Println("out ----- chan 1:", msg1)
+			case msg2 := <-chanStr2:
+				fmt.Println("out ----- chan 2:", msg2)
+			case <-time.After(time.Second * 5):
+				fmt.Println("timeout, check again...")
+			}
+		}
+	}()
+
+	var str string
+	fmt.Scanln(&str)
+
+	//make,new 的区别
+	//make用于内建类型（map,slice,chan）内存的分配，并且返回一个有初始值(非零)的T类型，而不是*T
+	//new 用于各种类型的内存分配【new返回指针】
+	//最重要的一点：make 仅适用于slice，map，chan
+
 }
 
 // T ...
@@ -86,4 +141,10 @@ func (t *T) M2(name string) {
 type S interface {
 	M1()
 	M2()
+}
+
+func goFunc() {
+	for k := 0; k < 10; k++ {
+		fmt.Println("go func ----- :", k)
+	}
 }
